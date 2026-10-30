@@ -43,6 +43,16 @@ export interface EventDocument {
   updatedAt: Date;
 }
 
+/** One row per member per event. The unique index makes joining idempotent. */
+export interface ParticipationDocument {
+  _id: ObjectId;
+  eventId: ObjectId;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  joinedAt: Date;
+}
+
 /** Shape sent over HTTP (dates as ISO strings, `_id` as `id`). */
 export interface EventDto {
   id: string;
@@ -60,4 +70,80 @@ export interface EventDto {
   };
   createdAt: string;
   updatedAt: string;
+}
+
+export interface EventInput {
+  title: string;
+  description: string;
+  type: EventType;
+  thumbnailUrl: string;
+  location: string;
+  eventDate: Date;
+}
+
+export type EventPatch = Partial<EventInput>;
+
+/** The verified identity carried by a Better Auth JWT. */
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface EventView {
+  event: EventDto;
+  viewerHasJoined: boolean;
+}
+
+/**
+ * Storage contract. MongoDB is the production path; the in-memory store keeps
+ * the same semantics for local work on a machine without a reachable mongod.
+ */
+export interface EventsRepository {
+  listUpcoming(limit?: number): Promise<EventDto[]>;
+  findById(id: string): Promise<EventDto | null>;
+  listByCreator(creatorId: string): Promise<EventDto[]>;
+  listJoinedByUser(userId: string): Promise<EventDto[]>;
+  hasJoined(eventId: string, userId: string): Promise<boolean>;
+  create(input: EventInput, creator: AuthUser): Promise<EventDto>;
+  update(id: string, patch: EventPatch): Promise<EventDto | null>;
+  remove(id: string): Promise<boolean>;
+  /** Returns true when the row was newly inserted. */
+  join(eventId: string, user: AuthUser): Promise<boolean>;
+  /** Returns true when an existing row was removed. */
+  leave(eventId: string, userId: string): Promise<boolean>;
+}
+
+export function toEventDto(document: {
+  _id: ObjectId | string;
+  title: string;
+  description: string;
+  type: EventType;
+  thumbnailUrl: string;
+  location: string;
+  eventDate: Date;
+  creatorId: string;
+  creatorEmail: string;
+  creatorName: string;
+  participantCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}): EventDto {
+  return {
+    id: String(document._id),
+    title: document.title,
+    description: document.description,
+    type: document.type,
+    thumbnailUrl: document.thumbnailUrl,
+    location: document.location,
+    eventDate: document.eventDate.toISOString(),
+    participantCount: document.participantCount,
+    creator: {
+      id: document.creatorId,
+      name: document.creatorName,
+      email: document.creatorEmail,
+    },
+    createdAt: document.createdAt.toISOString(),
+    updatedAt: document.updatedAt.toISOString(),
+  };
 }

@@ -17,6 +17,16 @@ const envSchema = z.object({
     .min(1)
     .default("http://localhost:3000"),
   BETTER_AUTH_URL: z.string().min(1).default("http://localhost:3000"),
+  /** Audience this API accepts. Must match the Better Auth JWT plugin. */
+  JWT_AUDIENCE: z.string().min(1).default("communova-api"),
+  /**
+   * Development only: keep events in a process-local store when no mongod is
+   * reachable. Never honoured in production.
+   */
+  EVENTS_DEV_MEMORY: z
+    .enum(["0", "1"])
+    .default("0")
+    .transform((value) => value === "1"),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -48,6 +58,8 @@ export const env = Object.freeze({
   mongoDb: raw.MONGODB_DB,
   allowedOrigins,
   betterAuthUrl: raw.BETTER_AUTH_URL.replace(/\/+$/, ""),
+  jwtAudience: raw.JWT_AUDIENCE,
+  eventsDevMemory: raw.EVENTS_DEV_MEMORY,
 });
 
 export type Env = typeof env;
