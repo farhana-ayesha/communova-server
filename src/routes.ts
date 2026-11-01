@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { eventsRouter } from "./modules/events/event.routes.js";
+import { newsletterRouter } from "./modules/newsletter/newsletter.routes.js";
 
 /**
  * Domain API surface. Feature routers mount here so every endpoint shares the
@@ -8,3 +9,4 @@ import { eventsRouter } from "./modules/events/event.routes.js";
 export const apiRouter: Router = Router();
 
 apiRouter.use("/events", eventsRouter);
+apiRouter.use("/newsletter", newsletterRouter);

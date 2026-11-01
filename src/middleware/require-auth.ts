@@ -10,7 +10,7 @@ import type { AuthUser } from "../modules/events/event.types.js";
  * cookie. `jose` caches keys in memory and refetches when it meets a new `kid`,
  * so key rotation within the Next.js process is handled without a restart.
  */
-const jwks = createRemoteJWKSet(new URL(`${env.betterAuthUrl}/api/auth/jwks`), {
+const jwks = createRemoteJWKSet(new URL("/api/auth/jwks", env.betterAuthUrl), {
   cacheMaxAge: 10 * 60 * 1000,
   cooldownDuration: 30 * 1000,
   timeoutDuration: 5_000,
@@ -26,6 +26,24 @@ function bearerToken(request: Request): string | null {
   return token.trim() || null;
 }
 
+function isInfrastructureError(error: unknown): boolean {
+  const name = error instanceof Error ? error.name : "";
+  const code =
+    typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : "";
+
+  return (
+    name === "JWKSNoMatchingKey" ||
+    name === "JWKSTimeout" ||
+    name === "TypeError" ||
+    name === "FetchError" ||
+    code === "ECONNREFUSED" ||
+    code === "ENOTFOUND" ||
+    code === "ETIMEDOUT"
+  );
+}
+
 async function verify(request: Request): Promise<AuthUser> {
   const token = bearerToken(request);
   if (!token) throw HttpError.unauthorized();
@@ -35,14 +53,11 @@ async function verify(request: Request): Promise<AuthUser> {
     ({ payload } = await jwtVerify(token, jwks, {
       issuer: env.betterAuthUrl,
       audience: env.jwtAudience,
+      algorithms: ["EdDSA", "ES256", "RS256"],
+      clockTolerance: 5,
     }));
   } catch (error) {
-    const name = error instanceof Error ? error.name : "";
-    if (
-      name === "JWKSNoMatchingKey" ||
-      name === "JWKSTimeout" ||
-      name === "TypeError"
-    ) {
+    if (isInfrastructureError(error)) {
       throw new HttpError(
         503,
         "auth_unavailable",
@@ -53,15 +68,28 @@ async function verify(request: Request): Promise<AuthUser> {
     throw HttpError.unauthorized("Your session has expired. Sign in again.");
   }
 
-  const id = typeof payload.sub === "string" ? payload.sub : "";
-  const email = typeof payload.email === "string" ? payload.email : "";
-  const name = typeof payload.name === "string" ? payload.name : "";
+  const id = typeof payload.sub === "string" ? payload.sub.trim() : "";
+  const email = typeof payload.email === "string" ? payload.email.trim() : "";
+  const name = typeof payload.name === "string" ? payload.name.trim() : "";
+  const image = typeof payload.image === "string" ? payload.image.trim() : null;
+
+  // Better Auth includes the user id both as `sub` and (in some versions) `id`.
+  // If both are present they must agree; a mismatched token is not trusted.
+  const payloadId = typeof payload.id === "string" ? payload.id.trim() : "";
+  if (payloadId && payloadId !== id) {
+    throw HttpError.unauthorized("Your session identity is inconsistent. Sign in again.");
+  }
 
   if (!id || !email) {
     throw HttpError.unauthorized("Your session is missing an identity. Sign in again.");
   }
 
-  return { id, email, name: name || email.split("@", 1)[0] || email };
+  return {
+    id,
+    email,
+    name: name || email.split("@", 1)[0] || email,
+    image: image || null,
+  };
 }
 
 /** Public routes can still personalise a response when a token is present. */

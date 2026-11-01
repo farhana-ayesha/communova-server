@@ -2,6 +2,7 @@ import { createApp } from "./app.js";
 import { env } from "./config/env.js";
 import { closeMongo, connectToMongo } from "./db/mongo.js";
 import { ensureEventIndexes } from "./modules/events/event.repository.js";
+import { ensureNewsletterIndexes } from "./modules/newsletter/newsletter.repository.js";
 
 async function main(): Promise<void> {
   if (env.isProduction && env.eventsDevMemory) {
@@ -16,7 +17,7 @@ async function main(): Promise<void> {
   } else {
     try {
       await connectToMongo();
-      await ensureEventIndexes();
+      await Promise.all([ensureEventIndexes(), ensureNewsletterIndexes()]);
       console.log(`[db] connected · ${env.mongoDb}`);
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);

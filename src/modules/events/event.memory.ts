@@ -20,6 +20,7 @@ type StoredEvent = EventInput & {
   creatorId: string;
   creatorEmail: string;
   creatorName: string;
+  creatorImage: string | null;
   participantCount: number;
   createdAt: Date;
   updatedAt: Date;
@@ -53,6 +54,7 @@ function seed(): MemoryStore {
       creatorId: seedEvent.creator.id,
       creatorEmail: seedEvent.creator.email,
       creatorName: seedEvent.creator.name,
+      creatorImage: seedEvent.creator.image ?? null,
       participantCount: seedEvent.participantCount,
       createdAt,
       updatedAt: createdAt,
@@ -86,6 +88,7 @@ function toDto(event: StoredEvent): EventDto {
     creatorId: event.creatorId,
     creatorEmail: event.creatorEmail,
     creatorName: event.creatorName,
+    creatorImage: event.creatorImage,
     participantCount: event.participantCount,
     createdAt: event.createdAt,
     updatedAt: event.updatedAt,
@@ -143,6 +146,7 @@ export class MemoryEventsRepository implements EventsRepository {
       creatorId: creator.id,
       creatorEmail: creator.email,
       creatorName: creator.name,
+      creatorImage: creator.image ?? null,
       participantCount: 0,
       createdAt: now,
       updatedAt: now,

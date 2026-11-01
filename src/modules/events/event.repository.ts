@@ -104,6 +104,7 @@ export class MongoEventsRepository implements EventsRepository {
       creatorId: creator.id,
       creatorEmail: creator.email,
       creatorName: creator.name,
+      creatorImage: creator.image ?? null,
       participantCount: 0,
       createdAt: now,
       updatedAt: now,

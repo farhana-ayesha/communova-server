@@ -18,7 +18,12 @@ function createState(): MongoState {
   const client = new MongoClient(env.mongoUri, {
     appName: "communova-api",
     maxPoolSize: 10,
+    minPoolSize: 1,
+    maxIdleTimeMS: 60_000,
     serverSelectionTimeoutMS: 5_000,
+    connectTimeoutMS: 10_000,
+    retryWrites: true,
+    retryReads: true,
   });
 
   return { client, db: client.db(env.mongoDb) };

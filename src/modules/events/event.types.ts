@@ -24,6 +24,7 @@ export const COLLECTIONS = {
   jwks: "jwks",
   events: "events",
   participations: "participations",
+  newsletterSubscribers: "newsletterSubscribers",
 } as const;
 
 /** Shape stored in MongoDB. */
@@ -38,6 +39,7 @@ export interface EventDocument {
   creatorId: string;
   creatorEmail: string;
   creatorName: string;
+  creatorImage: string | null;
   participantCount: number;
   createdAt: Date;
   updatedAt: Date;
@@ -67,6 +69,7 @@ export interface EventDto {
     id: string;
     name: string;
     email: string;
+    image: string | null;
   };
   createdAt: string;
   updatedAt: string;
@@ -88,6 +91,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
+  image?: string | null;
 }
 
 export interface EventView {
@@ -125,6 +129,7 @@ export function toEventDto(document: {
   creatorId: string;
   creatorEmail: string;
   creatorName: string;
+  creatorImage: string | null;
   participantCount: number;
   createdAt: Date;
   updatedAt: Date;
@@ -142,6 +147,7 @@ export function toEventDto(document: {
       id: document.creatorId,
       name: document.creatorName,
       email: document.creatorEmail,
+      image: document.creatorImage ?? null,
     },
     createdAt: document.createdAt.toISOString(),
     updatedAt: document.updatedAt.toISOString(),

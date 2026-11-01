@@ -1,7 +1,7 @@
 ﻿import { Router } from "express";
-import { z } from "zod";
 import { currentUser, optionalAuth, requireAuth } from "../../middleware/require-auth.js";
 import { HttpError } from "../../utils/http-error.js";
+import { parse } from "../../utils/parse.js";
 import { createEventSchema, listQuerySchema, updateEventSchema } from "./event.schema.js";
 import {
   createEvent,
@@ -14,18 +14,6 @@ import {
   listUpcomingEvents,
   updateEvent,
 } from "./event.service.js";
-
-function parse<T extends z.ZodType>(schema: T, value: unknown): z.infer<T> {
-  const result = schema.safeParse(value ?? {});
-  if (!result.success) {
-    throw HttpError.unprocessable(
-      "Check the highlighted fields.",
-      z.flattenError(result.error),
-    );
-  }
-
-  return result.data;
-}
 
 function eventId(request: { params: Record<string, unknown> }): string {
   const value = request.params.id;
