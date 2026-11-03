@@ -100,11 +100,29 @@ Never commit `.env` or production secrets.
 
 ## Deployment (Render)
 
-1. Create a **Web Service** from this repository, branch `main`.
-2. Build command: `npm install --include=dev && npm run build`
-3. Start command: `npm start`
-4. Add the environment variables above. Set `BETTER_AUTH_URL` and
-   `CLIENT_ORIGIN` to the production client URL. Leave `EVENTS_DEV_MEMORY` unset.
-5. In MongoDB Atlas, allow Render's outbound traffic under **Network Access**.
-6. Point the client's `NEXT_PUBLIC_API_URL` at the deployed API and redeploy the
-   client.
+1. Create a Web Service on Render using this repository and the `main` branch.
+2. Set the build command:
+
+   ```bash
+   npm install --include=dev && npm run build
+   ```
+
+3. Set the start command:
+
+   ```bash
+   npm start
+   ```
+
+4. Configure the required environment variables in Render:
+   - `MONGODB_URI`
+   - `MONGODB_DB`
+   - `CLIENT_ORIGIN`
+   - `BETTER_AUTH_URL`
+   - `JWT_AUDIENCE`
+   - `NODE_ENV=production`
+
+   Set `CLIENT_ORIGIN` and `BETTER_AUTH_URL` to the production client URL. Do not enable `EVENTS_DEV_MEMORY` in production.
+
+5. In MongoDB Atlas, configure **Network Access** to allow connections from your Render service.
+6. Set the client's `NEXT_PUBLIC_API_URL` to the deployed API URL and redeploy the client.
+7. Verify the deployment using the `/health` endpoint.
