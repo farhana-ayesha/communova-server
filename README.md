@@ -9,9 +9,9 @@ Authentication is issued by the Next.js client (Better Auth) and verified here
 as a short-lived JWT against the Better Auth JWKS endpoint, so this service
 never stores passwords or session cookies.
 
-- **Live API:** https://communova-server.onrender.com
-- **Health check:** https://communova-server.onrender.com/health
-- **Client repository:** https://github.com/farhana-ayesha/communova-client
+- Live API: https://communova-server.onrender.com
+- Health check: https://communova-server.onrender.com/health
+- Client repository: https://github.com/farhana-ayesha/communova-client
 
 > The API runs on a free Render instance. After a period of inactivity the first
 > request can take up to a minute while the service wakes up.
