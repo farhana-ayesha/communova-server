@@ -1,3 +1,7 @@
+Communova Server
+
+A RESTful backend API for Communova, an event management platform where users can create events, explore upcoming events, join events, and manage their activities.
+
 # Communova — API
 
 Express 5 + TypeScript + MongoDB API for
